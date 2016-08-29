@@ -1,0 +1,146 @@
+<link rel="import" href="https://polygit2.appspot.com/components/polymer/polymer.html">
+<!-- <link rel="import" href="../../assets/bower_components/polymer/polymer.html"> -->
+<dom-module id="smart-slider">
+	<template>
+		<content></content>
+		<div id="smart_slider_item"></div>
+	</template>
+	<script>
+		Polymer({
+			is: "smart-slider",
+			properties: {
+				leftSlide: {
+					type: Number
+				},
+				rightSlide: {
+					type: Number
+				},
+				orientation: {
+					type: String
+				},
+				min: {
+					type: Number
+				},
+				max: {
+					type: Number
+				},
+				step: {
+					type: Number
+				},
+				behaviour: {
+					type: String
+				},
+				connect: {
+					type: Boolean
+				}
+			},
+			ready: function () {
+				this.initSliderOptions();
+				this.initSlider();
+//				this.initDestructor();
+			},
+			initSliderOptions: function () {
+				this.min = parseInt(this.min) || 0;
+				this.max = parseInt(this.max) || 1000;
+				this.step = parseInt(this.step) || 0.0001;
+				if (!this.orientation)
+					this.orientation = 'horizontal';
+				this.leftSlide = parseInt(this.leftSlide) || this.min;
+				this.rightSlide = parseInt(this.rightSlide) || false;
+				if (!this.behaviour && this.rightSlide)
+					this.behaviour = 'drag';
+				if (!this.connect && this.rightSlide)
+					this.connect = true;
+			},
+
+			initSlider: function () {
+				this.sliderElement = this.$.smart_slider_item;
+				window.noUiSlider && noUiSlider.create(this.sliderElement, {
+					start: this.rightSlide ? [this.leftSlide, this.rightSlide] : this.leftSlide,
+					connect: this.connect,
+					behaviour: this.behaviour,
+					orientation: this.orientation,
+					range: {
+						'min': this.min,
+						'max': this.max
+					},
+					step: this.step
+				});
+			},
+			attributeChanged: function (name, type) {
+				switch (name) {
+					case 'right-slide':
+						this.sliderElement.noUiSlider.set([null, this.getAttribute(name)]);
+						break;
+					case 'left-slide':
+						this.sliderElement.noUiSlider.set([this.getAttribute(name), null]);
+						break;
+					case 'min':
+						this.sliderElement.noUiSlider.updateOptions({
+							range: {
+								'min': parseInt(this.getAttribute(name)),
+								'max': parseInt(this.getAttribute('max'))
+							}
+						});
+						break;
+					case 'max':
+						debugger;
+						this.sliderElement.noUiSlider.updateOptions({
+							range: {
+								'min': parseInt(this.getAttribute('min')),
+								'max': parseInt(this.getAttribute(name))
+							}
+						});
+						break;
+					case 'step':
+						this.sliderElement.noUiSlider.updateOptions({step: this.getAttribute(name)});
+						break;
+					case 'orientation':
+						this.sliderElement.noUiSlider.updateOptions({orientation: this.getAttribute(name)});
+						break;
+					case 'behaviour':
+						this.sliderElement.noUiSlider.updateOptions({behaviour: this.getAttribute(name)});
+						break;
+					case 'connect':
+						this.sliderElement.noUiSlider.updateOptions({connect: this.getAttribute(name)});
+						break;
+				}
+			},
+			attachEventListener: function () {
+				this.sliderElement.noUiSlider.on('slide', function (newValue, handle, newValueInt) {
+					this.fire('slide', {newValue: newValueInt, handle: handle});
+				}.bind(this));
+
+				this.sliderElement.noUiSlider.on('set', function (newValue, handle, newValueInt) {
+					this.fire('set', {newValue: newValueInt, handle: handle});
+				}.bind(this));
+
+				this.sliderElement.noUiSlider.on('change', function (newValue, handle, newValueInt) {
+					this.fire('change', {newValue: Math.round(newValueInt[0]), handle: handle});
+				}.bind(this));
+
+				this.sliderElement.noUiSlider.on('start', function (newValue, handle, newValueInt) {
+					this.fire('start', {newValue: newValueInt, handle: handle});
+				}.bind(this));
+
+				this.sliderElement.noUiSlider.on('end', function (newValue, handle, newValueInt) {
+					this.fire('end', {newValue: newValueInt, handle: handle});
+				}.bind(this));
+
+			},
+			dettachEventListener: function () {
+				this.sliderElement.noUiSlider.off('slide');
+				this.sliderElement.noUiSlider.off('set');
+				this.sliderElement.noUiSlider.off('start');
+				this.sliderElement.noUiSlider.off('end');
+				this.sliderElement.noUiSlider.off('change');
+			},
+			attached: function () {
+				this.attachEventListener();
+			},
+			dettached: function () {
+				this.dettachEventListener();
+			}
+		});
+	</script>
+</dom-module>
